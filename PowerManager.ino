@@ -89,7 +89,7 @@ namespace PM {
     byte state : 1;
   } DigitalPin;
 
-  void set(PM::DigitalPin& pin,boolean mode=INPUT,boolean state=false)
+  void set(PM::DigitalPin& pin, boolean mode=INPUT, boolean state=false)
   {
    pin.mode = mode;
    pin.state = state;
@@ -101,6 +101,16 @@ namespace PM {
   {
     pin.state = digitalRead( pin.pin );
     return pin;
+  }
+
+  String power(PM::DigitalPin& pin)
+  {
+    pin = PM::read(pin);
+    if(pin.state) {
+      return "1";
+    } else {
+      return "0";
+    }
   }
 
   boolean changed(PM::DigitalPin& pin)
@@ -115,7 +125,7 @@ namespace PM {
   }
 
   void toggle(PM::DigitalPin& pin){
-    write(pin,!pin.state); 
+    PM::write(pin, !pin.state);
   }
 }
 
@@ -152,27 +162,29 @@ boolean msgForMe() {
   }
 }
 
-boolean validateOutletNumber(num) {
-  boolean result = false;
-  if(isDigit(num)) {
-    int number = num.toInt();
-    for(int i = 0; i < sizeof(outlets) - 1; i++) {
-      if(outlets[i].pin == number) {
-        result = true;
-        break;
-      }
-    }
-  }
-  return result;
+boolean validateOutletNumber(int num) {
+  // return isDigit(num) && num < sizeof(outlets) - 1;
+  return true;
 }
 
+void setReplyToError() {
+  reply = reply.substring(0,3) + "ERROR----";
+}
+
+void startSequence() {
+  for(int i = 0; i < 6; i++) {
+    delay(500);
+    PM::toggle(outlets[7]);
+  }
+}
 
 void setup()
 {
   int i;
-  for(i = 0; i < sizeof(outlets) - 1; i++) {
+  for(i = 0; i < sizeof(outlets); i++) {
     PM::set(outlets[i], OUTPUT);
   }
+  startSequence();
 
   pinMode(8, OUTPUT);     // initialize pin 8 to control the radio
   digitalWrite(8, HIGH);  // select the radio
@@ -186,7 +198,7 @@ void loop() // repeatedly called
   if (Serial.available() >= 12 && readMsg() && msgForMe()) // have we got enough characters for a message?
   {
     reply = msg;
-    msg = msg.substring(3);
+    msg = msg.substring(3); // removes aXX from the message
     if (msg.compareTo("HELLO----") == 0)
     {
       ;  // just echo the message back
@@ -195,20 +207,28 @@ void loop() // repeatedly called
       ;  // return status
     }
     else {
-      byte command;
-      byte outletNumber;
-      command = msg.subring(0, 5);
-      outletNumber = msg.charAt(6);
+      String command;
+      int outletNumber;
+      command = msg.substring(0, 6);
+      outletNumber = msg.charAt(6) - '0';
+      reply = reply.substring(0, 3) + command + outletNumber;
 
-      if(command.compareTo("STATUS")) {
-
-      } else if(command.compareTo("TOGGLE")) {
+      if(command.compareTo("STATUS") == 0) {
+        if(validateOutletNumber(outletNumber)) {
+          PM::read(outlets[outletNumber]);
+          reply += "=" + PM::power(outlets[outletNumber]);
+        } else {
+          setReplyToError();
+        }
+      } else if(command.compareTo("TOGGLE") == 0) {
+        if(validateOutletNumber(outletNumber)) {
+          PM::toggle(outlets[outletNumber]);
+        } else {
+          setReplyToError();
+        }
+      } else {
+        setReplyToError();
       }
-
-      //for(int i = 0; i < sizeof(outlets) - 1; i++) {
-      //  PM::toggle(outlets[i]);
-      //}
-      PM::toggle(outlets[0]);
     }
 
     if (reply.length() < 12)
