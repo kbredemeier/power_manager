@@ -130,13 +130,14 @@ namespace PM {
 }
 
 PM::DigitalPin outlets[] = {
-  { 2, OUTPUT, false },
-  { 3, OUTPUT, false },
   { 4, OUTPUT, false },
   { 5, OUTPUT, false },
   { 6, OUTPUT, false },
-  { 8, OUTPUT, false },
+  { 7, OUTPUT, false },
   { 9, OUTPUT, false },
+  { 10, OUTPUT, false },
+  { 11, OUTPUT, false },
+  { 12, OUTPUT, false },
   { 13, OUTPUT, false }
 };
 
