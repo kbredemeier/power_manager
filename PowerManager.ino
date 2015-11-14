@@ -224,6 +224,7 @@ void loop() // repeatedly called
       } else if(command.compareTo("TOGGLE") == 0) {
         if(validateOutletNumber(outletNumber)) {
           PM::toggle(outlets[outletNumber]);
+          reply += "=" + PM::power(outlets[outletNumber]);
         } else {
           setReplyToError();
         }
