@@ -172,20 +172,12 @@ void setReplyToError() {
   reply = reply.substring(0,3) + "ERROR----";
 }
 
-void startSequence() {
-  for(int i = 0; i < 6; i++) {
-    delay(500);
-    PM::toggle(outlets[7]);
-  }
-}
-
 void setup()
 {
   int i;
   for(i = 0; i < sizeof(outlets); i++) {
     PM::set(outlets[i], OUTPUT);
   }
-  startSequence();
 
   pinMode(8, OUTPUT);     // initialize pin 8 to control the radio
   digitalWrite(8, HIGH);  // select the radio
